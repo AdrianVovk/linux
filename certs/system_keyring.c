@@ -130,12 +130,6 @@ int restrict_link_by_digsig_builtin_and_secondary(struct key *dest_keyring,
 	/* If we have a secondary trusted keyring, then that contains a link
 	 * through to the builtin keyring and the search will follow that link.
 	 */
-	if (type == &key_type_keyring &&
-	    dest_keyring == secondary_trusted_keys &&
-	    payload == &builtin_trusted_keys->payload)
-		/* Allow the builtin keyring to be added to the secondary */
-		return 0;
-
 	return restrict_link_by_digsig(dest_keyring, type, payload,
 				       secondary_trusted_keys);
 }
