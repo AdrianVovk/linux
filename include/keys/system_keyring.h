@@ -67,6 +67,14 @@ static inline void __init set_machine_trusted_keys(struct key *keyring)
 }
 #endif
 
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+extern void __init set_vendor_trusted_keys(struct key *keyring);
+#else
+static inline void __init set_vendor_trusted_keys(struct key *keyring)
+{
+}
+#endif
+
 #ifdef CONFIG_SYSTEM_BLACKLIST_KEYRING
 extern int mark_hash_blacklisted(const u8 *hash, size_t hash_len,
 			       enum blacklist_hash_type hash_type);

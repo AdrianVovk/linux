@@ -24,6 +24,9 @@ static struct key *secondary_trusted_keys;
 #ifdef CONFIG_INTEGRITY_MACHINE_KEYRING
 static struct key *machine_trusted_keys;
 #endif
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+static struct key *vendor_trusted_keys;
+#endif
 #ifdef CONFIG_INTEGRITY_PLATFORM_KEYRING
 static struct key *platform_trusted_keys;
 #endif
@@ -101,6 +104,14 @@ int restrict_link_by_builtin_and_secondary_trusted(
 	    dest_keyring == secondary_trusted_keys &&
 	    payload == &machine_trusted_keys->payload)
 		/* Allow the machine keyring to be added to the secondary */
+		return 0;
+#endif
+
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+	if (vendor_trusted_keys && type == &key_type_keyring &&
+	    dest_keyring == secondary_trusted_keys &&
+	    payload == &vendor_trusted_keys->payload)
+		/* Allow the vendor keyring to be added to the secondary */
 		return 0;
 #endif
 
@@ -190,6 +201,16 @@ void __init set_machine_trusted_keys(struct key *keyring)
 
 	if (key_link(secondary_trusted_keys, machine_trusted_keys) < 0)
 		panic("Can't link (machine) trusted keyrings\n");
+}
+#endif
+
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+void __init set_vendor_trusted_keys(struct key *keyring)
+{
+	vendor_trusted_keys = keyring;
+
+	if (key_link(secondary_trusted_keys, vendor_trusted_keys) < 0)
+		panic("Can't link (vendor) trusted keyrings\n");
 }
 #endif
 
