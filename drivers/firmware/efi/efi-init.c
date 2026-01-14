@@ -267,6 +267,7 @@ void __init efi_init(void)
 	efi_find_mirror();
 	efi_esrt_init();
 	efi_mokvar_table_init();
+	efi_vsk_table_init();
 
 	memblock_reserve(data.phys_map & PAGE_MASK,
 			 PAGE_ALIGN(data.size + (data.phys_map & ~PAGE_MASK)));

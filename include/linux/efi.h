@@ -418,6 +418,7 @@ void efi_native_runtime_setup(void);
 #define LINUX_EFI_MEMRESERVE_TABLE_GUID		EFI_GUID(0x888eb0c6, 0x8ede, 0x4ff5,  0xa8, 0xf0, 0x9a, 0xee, 0x5c, 0xb9, 0x77, 0xc2)
 #define LINUX_EFI_INITRD_MEDIA_GUID		EFI_GUID(0x5568e427, 0x68fc, 0x4f3d,  0xac, 0x74, 0xca, 0x55, 0x52, 0x31, 0xcc, 0x68)
 #define LINUX_EFI_MOK_VARIABLE_TABLE_GUID	EFI_GUID(0xc451ed2b, 0x9694, 0x45d3,  0xba, 0xba, 0xed, 0x9f, 0x89, 0x88, 0xa3, 0x89)
+#define LINUX_EFI_VSK_TABLE_GUID		EFI_GUID(0x2ecd4546, 0x193e, 0x452f,  0x8b, 0x95, 0xb7, 0xc5, 0x03, 0xd1, 0x69, 0xcd)
 #define LINUX_EFI_COCO_SECRET_AREA_GUID		EFI_GUID(0xadf956ad, 0xe98c, 0x484c,  0xae, 0x11, 0xb5, 0x1c, 0x7d, 0x33, 0x64, 0x47)
 #define LINUX_EFI_BOOT_MEMMAP_GUID		EFI_GUID(0x800f683f, 0xd08b, 0x423a,  0xa2, 0x93, 0x96, 0x5c, 0x3c, 0x6f, 0xe2, 0xb4)
 #define LINUX_EFI_UNACCEPTED_MEM_TABLE_GUID	EFI_GUID(0xd5d1de3c, 0x105c, 0x44f9,  0x9e, 0xa9, 0xbc, 0xef, 0x98, 0x12, 0x00, 0x31)
@@ -647,6 +648,7 @@ extern struct efi {
 	unsigned long			tpm_final_log;		/* TPM2 Final Events Log table */
 	unsigned long                   ovmf_debug_log;
 	unsigned long			mokvar_table;		/* MOK variable config table */
+	unsigned long			vsk_table;		/* Vendor Signing Keys table */
 	unsigned long			coco_secret;		/* Confidential computing secret table */
 	unsigned long			unaccepted;		/* Unaccepted memory table */
 
@@ -1304,11 +1306,20 @@ struct efi_mokvar_table_entry {
 	u8 data[];
 } __attribute((packed));
 
+struct efi_vsk_table {
+	u64 magic;
+	u64 esl_size;
+	u8 esl[] __counted_by(esl_size);
+};
+
 #ifdef CONFIG_LOAD_UEFI_KEYS
 extern void __init efi_mokvar_table_init(void);
 extern struct efi_mokvar_table_entry *efi_mokvar_entry_next(
 			struct efi_mokvar_table_entry **mokvar_entry);
 extern struct efi_mokvar_table_entry *efi_mokvar_entry_find(const char *name);
+
+extern void __init efi_vsk_table_init(void);
+extern struct efi_vsk_table *efi_get_vsk(void);
 #else
 static inline void efi_mokvar_table_init(void) { }
 static inline struct efi_mokvar_table_entry *efi_mokvar_entry_next(
@@ -1321,6 +1332,9 @@ static inline struct efi_mokvar_table_entry *efi_mokvar_entry_find(
 {
 	return NULL;
 }
+
+static inline void efi_vsk_table_init(void) { }
+static inline struct efi_vsk_table *efi_get_vsk(void) { return NULL; }
 #endif
 
 extern void efifb_setup_from_dmi(struct screen_info *si, const char *opt);

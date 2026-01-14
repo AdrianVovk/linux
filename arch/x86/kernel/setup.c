@@ -1084,6 +1084,7 @@ void __init setup_arch(char **cmdline_p)
 	efi_find_mirror();
 	efi_esrt_init();
 	efi_mokvar_table_init();
+	efi_vsk_table_init();
 
 	/*
 	 * The EFI specification says that boot service code won't be
