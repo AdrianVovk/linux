@@ -100,3 +100,14 @@ __init efi_element_handler_t get_handler_for_dbx(const efi_guid_t *sig_type)
 		return uefi_revocation_list_x509;
 	return NULL;
 }
+
+/*
+ * Return the appropriate handler for particular signature list types found in
+ * the VSK table.
+ */
+__init efi_element_handler_t get_handler_for_vsk(const efi_guid_t *sig_type)
+{
+	if (efi_guidcmp(*sig_type, efi_cert_x509_guid) == 0)
+		return add_to_vendor_keyring;
+	return NULL;
+}

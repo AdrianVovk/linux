@@ -161,11 +161,23 @@ static int __init load_uefi_certs(void)
 {
 	efi_guid_t secure_var = EFI_IMAGE_SECURITY_DATABASE_GUID;
 	efi_guid_t mok_var = EFI_SHIM_LOCK_GUID;
+	struct efi_vsk_table *vsk;
 	void *db = NULL, *dbx = NULL, *mokx = NULL;
 	unsigned long dbsize = 0, dbxsize = 0, mokxsize = 0;
 	efi_status_t status;
 	int rc = 0;
 	const struct dmi_system_id *dmi_id;
+
+	vsk = efi_get_vsk();
+	if (!vsk) {
+		pr_debug("VSK table wasn't found\n");
+	} else {
+		rc = parse_efi_signature_list("UEFI:VSK",
+					      vsk->esl, vsk->esl_size,
+					      get_handler_for_vsk);
+		if (rc)
+			pr_error("Couldn't parse VSK signatures: %d\n", rc);
+	}
 
 	dmi_id = dmi_first_match(uefi_skip_cert);
 	if (dmi_id) {

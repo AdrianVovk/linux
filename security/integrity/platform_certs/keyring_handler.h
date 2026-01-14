@@ -44,6 +44,11 @@ efi_element_handler_t get_handler_for_code_signing_keys(const efi_guid_t *sig_ty
  */
 efi_element_handler_t get_handler_for_dbx(const efi_guid_t *sig_type);
 
+/*
+ * Return the handler for particular signature list types found in the vsk.
+ */
+efi_element_handler_t get_handler_for_vsk(const efi_guid_t *sig_type);
+
 #endif
 
 #ifndef UEFI_QUIRK_SKIP_CERT
