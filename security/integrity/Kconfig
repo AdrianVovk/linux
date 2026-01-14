@@ -75,6 +75,16 @@ config INTEGRITY_MACHINE_KEYRING
 	  in the platform keyring, keys contained in the .machine keyring will
 	  be trusted within the kernel.
 
+config INTEGRITY_VENDOR_KEYRING
+	bool "Provide a keyring to which Vendor Signing Keys may be added"
+	depends on SECONDARY_TRUSTED_KEYRING
+	depends on INTEGRITY_ASYMMETRIC_KEYS
+	depends on LOAD_UEFI_KEYS || LOAD_PPC_KEYS
+	help
+	  If set, provide a keyring to which Vendor Signing Keys (VSK) may
+	  be added. This keyring shall contain just VSK keys. Keys contained
+	  in the .vendor keyring will be trusted within the kernel.
+
 config INTEGRITY_CA_MACHINE_KEYRING
 	bool "Enforce Machine Keyring CA Restrictions"
 	depends on INTEGRITY_MACHINE_KEYRING

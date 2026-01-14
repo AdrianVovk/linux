@@ -31,6 +31,7 @@ static const char * const keyring_name[INTEGRITY_KEYRING_MAX] = {
 #endif
 	".platform",
 	".machine",
+	".vendor",
 };
 
 #ifdef CONFIG_IMA_KEYRINGS_PERMIT_SIGNED_BY_BUILTIN_OR_SECONDARY
@@ -115,6 +116,8 @@ static int __init __integrity_init_keyring(const unsigned int id,
 			set_platform_trusted_keys(keyring[id]);
 		if (id == INTEGRITY_KEYRING_MACHINE && imputed_trust_enabled())
 			set_machine_trusted_keys(keyring[id]);
+		if (id == INTEGRITY_KEYRING_VENDOR)
+			set_vendor_trusted_keys(keyring[id]);
 		if (id == INTEGRITY_KEYRING_IMA)
 			load_module_cert(keyring[id]);
 	}
@@ -151,11 +154,13 @@ int __init integrity_init_keyring(const unsigned int id)
 		restriction->check = restrict_link_to_ima;
 
 	/*
-	 * MOK keys can only be added through a read-only runtime services
-	 * UEFI variable during boot. No additional keys shall be allowed to
-	 * load into the machine keyring following init from userspace.
+	 * MOK and VSK keys can only be added through EFI config tables
+	 * (aside: MOK can also be loaded through a read-only runtime services
+	 * UEFI variable) during boot. No additional keys shall be allowed to
+	 * load into the machine and vendor keyrings following init from
+	 * userspace.
 	 */
-	if (id != INTEGRITY_KEYRING_MACHINE)
+	if (id != INTEGRITY_KEYRING_MACHINE && id != INTEGRITY_KEYRING_VENDOR)
 		perm |= KEY_USR_WRITE;
 
 out:

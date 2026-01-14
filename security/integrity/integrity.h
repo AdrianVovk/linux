@@ -121,7 +121,8 @@ void __init integrity_fs_fini(void);
 #define INTEGRITY_KEYRING_IMA		1
 #define INTEGRITY_KEYRING_PLATFORM	2
 #define INTEGRITY_KEYRING_MACHINE	3
-#define INTEGRITY_KEYRING_MAX		4
+#define INTEGRITY_KEYRING_VENDOR 	4
+#define INTEGRITY_KEYRING_MAX		5
 
 extern struct dentry *integrity_dir;
 
@@ -266,5 +267,14 @@ static inline void __init add_to_machine_keyring(const char *source,
 static inline bool __init imputed_trust_enabled(void)
 {
 	return false;
+}
+#endif
+
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+void __init add_to_vendor_keyring(const char *source, const void *data, size_t len);
+#else
+static inline void __init add_to_vendor_keyring(const char *source,
+					        const void *data, size_t len)
+{
 }
 #endif

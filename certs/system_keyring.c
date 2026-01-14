@@ -24,6 +24,9 @@ static struct key *secondary_trusted_keys;
 #ifdef CONFIG_INTEGRITY_MACHINE_KEYRING
 static struct key *machine_trusted_keys;
 #endif
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+static struct key *vendor_trusted_keys;
+#endif
 #ifdef CONFIG_INTEGRITY_PLATFORM_KEYRING
 static struct key *platform_trusted_keys;
 #endif
@@ -90,15 +93,31 @@ int restrict_link_by_builtin_and_secondary_trusted(
 	const union key_payload *payload,
 	struct key *restrict_key)
 {
-	/* If we have a secondary trusted keyring, then that contains a link
-	 * through to the builtin keyring and the search will follow that link.
-	 */
 	if (type == &key_type_keyring &&
 	    dest_keyring == secondary_trusted_keys &&
 	    payload == &builtin_trusted_keys->payload)
 		/* Allow the builtin keyring to be added to the secondary */
 		return 0;
 
+#ifdef CONFIG_INTEGRITY_MACHINE_KEYRING
+	if (machine_trusted_keys && type == &key_type_keyring &&
+	    dest_keyring == secondary_trusted_keys &&
+	    payload == &machine_trusted_keys->payload)
+		/* Allow the machine keyring to be added to the secondary */
+		return 0;
+#endif
+
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+	if (vendor_trusted_keys && type == &key_type_keyring &&
+	    dest_keyring == secondary_trusted_keys &&
+	    payload == &vendor_trusted_keys->payload)
+		/* Allow the vendor keyring to be added to the secondary */
+		return 0;
+#endif
+
+	/* If we have a secondary trusted keyring, then that contains a link
+	 * through to the builtin keyring and the search will follow that link.
+	 */
 	return restrict_link_by_signature(dest_keyring, type, payload,
 					  secondary_trusted_keys);
 }
@@ -122,12 +141,6 @@ int restrict_link_by_digsig_builtin_and_secondary(struct key *dest_keyring,
 	/* If we have a secondary trusted keyring, then that contains a link
 	 * through to the builtin keyring and the search will follow that link.
 	 */
-	if (type == &key_type_keyring &&
-	    dest_keyring == secondary_trusted_keys &&
-	    payload == &builtin_trusted_keys->payload)
-		/* Allow the builtin keyring to be added to the secondary */
-		return 0;
-
 	return restrict_link_by_digsig(dest_keyring, type, payload,
 				       secondary_trusted_keys);
 }
@@ -145,10 +158,7 @@ static __init struct key_restriction *get_builtin_and_secondary_restriction(void
 	if (!restriction)
 		panic("Can't allocate secondary trusted keyring restriction\n");
 
-	if (IS_ENABLED(CONFIG_INTEGRITY_MACHINE_KEYRING))
-		restriction->check = restrict_link_by_builtin_secondary_and_machine;
-	else
-		restriction->check = restrict_link_by_builtin_and_secondary_trusted;
+	restriction->check = restrict_link_by_builtin_and_secondary_trusted;
 
 	return restriction;
 }
@@ -183,6 +193,7 @@ void __init add_to_secondary_keyring(const char *source, const void *data, size_
 	key_ref_put(key);
 }
 #endif
+
 #ifdef CONFIG_INTEGRITY_MACHINE_KEYRING
 void __init set_machine_trusted_keys(struct key *keyring)
 {
@@ -191,32 +202,15 @@ void __init set_machine_trusted_keys(struct key *keyring)
 	if (key_link(secondary_trusted_keys, machine_trusted_keys) < 0)
 		panic("Can't link (machine) trusted keyrings\n");
 }
+#endif
 
-/**
- * restrict_link_by_builtin_secondary_and_machine - Restrict keyring addition.
- * @dest_keyring: Keyring being linked to.
- * @type: The type of key being added.
- * @payload: The payload of the new key.
- * @restrict_key: A ring of keys that can be used to vouch for the new cert.
- *
- * Restrict the addition of keys into a keyring based on the key-to-be-added
- * being vouched for by a key in either the built-in, the secondary, or
- * the machine keyrings.
- */
-int restrict_link_by_builtin_secondary_and_machine(
-	struct key *dest_keyring,
-	const struct key_type *type,
-	const union key_payload *payload,
-	struct key *restrict_key)
+#ifdef CONFIG_INTEGRITY_VENDOR_KEYRING
+void __init set_vendor_trusted_keys(struct key *keyring)
 {
-	if (machine_trusted_keys && type == &key_type_keyring &&
-	    dest_keyring == secondary_trusted_keys &&
-	    payload == &machine_trusted_keys->payload)
-		/* Allow the machine keyring to be added to the secondary */
-		return 0;
+	vendor_trusted_keys = keyring;
 
-	return restrict_link_by_builtin_and_secondary_trusted(dest_keyring, type,
-							      payload, restrict_key);
+	if (key_link(secondary_trusted_keys, vendor_trusted_keys) < 0)
+		panic("Can't link (vendor) trusted keyrings\n");
 }
 #endif
 

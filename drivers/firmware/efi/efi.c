@@ -48,6 +48,7 @@ struct efi __read_mostly efi = {
 	.ovmf_debug_log         = EFI_INVALID_TABLE_ADDR,
 #ifdef CONFIG_LOAD_UEFI_KEYS
 	.mokvar_table		= EFI_INVALID_TABLE_ADDR,
+	.vsk_table              = EFI_INVALID_TABLE_ADDR,
 #endif
 #ifdef CONFIG_EFI_COCO_SECRET
 	.coco_secret		= EFI_INVALID_TABLE_ADDR,
@@ -634,6 +635,7 @@ static const efi_config_table_type_t common_tables[] __initconst = {
 #endif
 #ifdef CONFIG_LOAD_UEFI_KEYS
 	{LINUX_EFI_MOK_VARIABLE_TABLE_GUID,	&efi.mokvar_table,	"MOKvar"	},
+	{LINUX_EFI_VSK_TABLE_GUID,		&efi.vsk_table,		"VSK"		},
 #endif
 #ifdef CONFIG_EFI_COCO_SECRET
 	{LINUX_EFI_COCO_SECRET_AREA_GUID,	&efi.coco_secret,	"CocoSecret"	},
